@@ -55,7 +55,9 @@ foreach ($rows as $row) {
     try {
         $result = generate_debriefing($row['name'], $feedbackText);
     } catch (Throwable $e) {
-        error_log("debriefing_0630.php: Claude-Fehler für employee_id={$row['employee_id']}: " . $e->getMessage());
+        $msg = "debriefing_0630.php: Claude-Fehler für employee_id={$row['employee_id']}: " . $e->getMessage();
+        error_log($msg);
+        echo $msg . "\n";
         $failed++;
         continue;
     }
@@ -80,7 +82,9 @@ foreach ($rows as $row) {
     if ($mailOk) {
         $sent++;
     } else {
-        error_log("debriefing_0630.php: Mail an {$row['email']} konnte nicht gesendet werden.");
+        $msg = "debriefing_0630.php: Mail an {$row['email']} konnte nicht gesendet werden.";
+        error_log($msg);
+        echo $msg . "\n";
         $failed++;
     }
 }
