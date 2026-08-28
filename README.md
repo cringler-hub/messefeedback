@@ -1,0 +1,103 @@
+# Messefeedback Innotrans – Tages-Debriefing
+
+Tägliches Feedback-Formular für Mitarbeiter auf der Innotrans, daraus
+per Claude API ein persönliches Debriefing + Motivationsspruch, das
+morgens um 6:30 Uhr per Mail rausgeht. Um 18:00 Uhr gibt es eine
+Erinnerungsmail an alle, die noch kein Feedback für den Tag abgegeben
+haben.
+
+Reines PHP + MySQL, läuft auf IONOS Shared Hosting ohne Node/Build-Schritt.
+
+## Aufbau
+
+```
+index.php              Formular (7 Tap-Fragen + Freitext)
+submit.php              Formular-Handling, Speichern in DB
+danke.php               Danke-Seite nach Absenden
+assets/style.css        Styling
+config.example.php      Vorlage – auf dem Server nach config.php kopieren
+lib/                     PHP-Hilfsklassen (DB, Mail, Claude API, Fragenkatalog)
+cron/reminder_18h.php   18:00-Erinnerungsmail
+cron/debriefing_0630.php 06:30-Debriefing-Mail
+db/schema.sql           Tabellen
+db/seed_employees.sql   Mitarbeiterliste zum Import
+```
+
+`lib/`, `db/` und `config.php` sind per `.htaccess` gegen direkten
+Web-Zugriff gesperrt.
+
+## Einrichtung auf IONOS
+
+1. **Datenbank anlegen**: Im IONOS-Kundenportal eine MySQL-Datenbank
+   erstellen (falls noch nicht vorhanden) und Zugangsdaten (Host,
+   DB-Name, User, Passwort) notieren.
+2. **Schema importieren**: `db/schema.sql` und danach `db/seed_employees.sql`
+   (vorher Mitarbeiterliste ergänzen) über phpMyAdmin oder
+   `mysql -h HOST -u USER -p DBNAME < db/schema.sql` importieren.
+3. **Konfiguration**: `config.example.php` nach `config.php` kopieren
+   und ausfüllen:
+   - DB-Zugangsdaten aus Schritt 1
+   - `mail.from_address` (z. B. `c.ringler@ringler-online.com`)
+   - `claude.api_key` (siehe console.anthropic.com)
+   - `app.base_url` = `https://www.ringler-online.com/messefeedback`
+   - `app.cron_secret` = langer zufälliger String (z. B. mit
+     `php -r "echo bin2hex(random_bytes(24));"` erzeugen)
+4. **Hochladen**: Den kompletten Inhalt dieses Repos per SFTP in einen
+   Unterordner `/messefeedback/` im Webspace hochladen, sodass er unter
+   `https://www.ringler-online.com/messefeedback/` erreichbar ist.
+   `config.php` **nicht** ins Git-Repo committen (steht in `.gitignore`).
+5. **Testen**: Formular im Browser öffnen, einmal ausfüllen, danach in
+   der DB prüfen, ob `feedback_submissions`/`feedback_answers` befüllt
+   wurden.
+
+## Cronjobs einrichten
+
+Im IONOS-Kundenportal unter „Cronjobs“ zwei tägliche Jobs anlegen. Je
+nach Tarif entweder CLI-Ausführung oder URL-Aufruf (per `wget`/`curl`)
+– beides wird unterstützt:
+
+**18:00 Uhr – Erinnerung**
+```
+# CLI:
+php /pfad/zu/messefeedback/cron/reminder_18h.php
+# oder URL:
+https://www.ringler-online.com/messefeedback/cron/reminder_18h.php?token=DEIN_CRON_SECRET
+```
+
+**06:30 Uhr – Debriefing**
+```
+# CLI:
+php /pfad/zu/messefeedback/cron/debriefing_0630.php
+# oder URL:
+https://www.ringler-online.com/messefeedback/cron/debriefing_0630.php?token=DEIN_CRON_SECRET
+```
+
+`DEIN_CRON_SECRET` ist der Wert aus `config.php` → `app.cron_secret`.
+Ohne gültiges Token liefert der Aufruf `403 Forbidden` – so kann
+niemand sonst im Internet die Jobs auslösen.
+
+Beide Skripte sind idempotent (Unique-Keys in `reminder_log` bzw.
+`debriefings`): Ein versehentlicher Doppelaufruf verschickt keine
+Mails doppelt.
+
+## Mitarbeiterliste pflegen
+
+Mitarbeiter jederzeit in der Tabelle `employees` ergänzen/deaktivieren
+(`active = 0` statt löschen, damit die Historie erhalten bleibt) –
+kein Redeploy nötig.
+
+## Deliverability-Hinweis
+
+`lib/mailer.php` nutzt PHP `mail()`. Das funktioniert auf IONOS meist
+zuverlässig, sofern `from_address` zu einer Mailbox der Domain gehört.
+Falls Mails im Spam landen oder nicht ankommen: auf SMTP-Versand über
+den IONOS-Mailserver (z. B. mit PHPMailer) umstellen – dafür `lib/mailer.php`
+anpassen, der Rest der Anwendung bleibt unverändert.
+
+## Fragenkatalog erweitern
+
+Fragen sind zentral in `lib/questions.php` definiert und werden von
+Formular, Validierung und KI-Prompt gemeinsam genutzt. Antworten
+werden als Key/Value-Zeilen gespeichert (`feedback_answers`), neue
+Fragen erfordern daher **keine** Schemaänderung – einfach einen neuen
+Eintrag im Katalog ergänzen.

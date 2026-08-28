@@ -1,0 +1,11 @@
+# config.php nie über den Webserver ausliefern (enthält DB-Passwort
+# und Claude-API-Key).
+<Files "config.php">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</Files>
