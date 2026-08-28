@@ -66,5 +66,5 @@ jobs:
           password: ${{ secrets.SFTP_PASSWORD }}
           local_path: './*'
           remote_path: 'messefeedback'
-          sftp_only: true
+          sftp_only: false
           sftpArgs: '-o ConnectTimeout=10'
