@@ -31,3 +31,18 @@ if (is_file(__DIR__ . '/config.php')) {
 }
 
 echo "\nDateirechte index.php: " . (is_file(__DIR__ . '/index.php') ? substr(sprintf('%o', fileperms(__DIR__ . '/index.php')), -4) : "Datei fehlt") . "\n";
+
+echo "\n--- Teste index.php direkt (Fehler abgefangen) ---\n";
+try {
+    ob_start();
+    include __DIR__ . '/index.php';
+    $output = ob_get_clean();
+    echo "index.php lief durch OHNE Fehler. Ausgabelänge: " . strlen($output) . " Zeichen\n";
+} catch (Throwable $e) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    echo "FEHLER in index.php:\n";
+    echo get_class($e) . ": " . $e->getMessage() . "\n";
+    echo "Datei: " . $e->getFile() . " Zeile: " . $e->getLine() . "\n";
+}
