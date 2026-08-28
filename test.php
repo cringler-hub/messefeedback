@@ -32,6 +32,23 @@ if (is_file(__DIR__ . '/config.php')) {
 
 echo "\nDateirechte index.php: " . (is_file(__DIR__ . '/index.php') ? substr(sprintf('%o', fileperms(__DIR__ . '/index.php')), -4) : "Datei fehlt") . "\n";
 
+echo "\n--- Verzeichnisinhalt ---\n";
+function list_dir(string $dir, string $label): void
+{
+    echo "{$label}: ";
+    if (!is_dir($dir)) {
+        echo "EXISTIERT NICHT\n";
+        return;
+    }
+    $items = array_diff(scandir($dir) ?: [], ['.', '..']);
+    echo implode(', ', $items) . "\n";
+}
+list_dir(__DIR__, 'messefeedback/');
+list_dir(__DIR__ . '/lib', 'messefeedback/lib/');
+list_dir(__DIR__ . '/db', 'messefeedback/db/');
+list_dir(__DIR__ . '/cron', 'messefeedback/cron/');
+list_dir(__DIR__ . '/assets', 'messefeedback/assets/');
+
 echo "\n--- Teste index.php direkt (Fehler abgefangen) ---\n";
 try {
     ob_start();
