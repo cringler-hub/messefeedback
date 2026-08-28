@@ -34,21 +34,52 @@ Web-Zugriff gesperrt.
 2. **Schema importieren**: `db/schema.sql` und danach `db/seed_employees.sql`
    (vorher Mitarbeiterliste ergänzen) über phpMyAdmin oder
    `mysql -h HOST -u USER -p DBNAME < db/schema.sql` importieren.
-3. **Konfiguration**: `config.example.php` nach `config.php` kopieren
-   und ausfüllen:
-   - DB-Zugangsdaten aus Schritt 1
-   - `mail.from_address` (z. B. `c.ringler@ringler-online.com`)
-   - `claude.api_key` (siehe console.anthropic.com)
-   - `app.base_url` = `https://www.ringler-online.com/messefeedback`
-   - `app.cron_secret` = langer zufälliger String (z. B. mit
-     `php -r "echo bin2hex(random_bytes(24));"` erzeugen)
-4. **Hochladen**: Den kompletten Inhalt dieses Repos per SFTP in einen
-   Unterordner `/messefeedback/` im Webspace hochladen, sodass er unter
-   `https://www.ringler-online.com/messefeedback/` erreichbar ist.
-   `config.php` **nicht** ins Git-Repo committen (steht in `.gitignore`).
+3. **Zielordner anlegen**: Einmalig per FTP-Client oder Datei-Manager
+   einen leeren Ordner `/messefeedback/` im Webspace anlegen (die
+   automatische Deployment-Action unten legt ihn nicht selbst an).
+4. **Deployment einrichten** (empfohlen, automatisch bei jedem Push
+   – siehe nächster Abschnitt) **oder** manuell: `config.example.php`
+   nach `config.php` kopieren, ausfüllen und den kompletten Repo-Inhalt
+   per SFTP nach `/messefeedback/` hochladen. `config.php` dabei
+   **nicht** ins Git-Repo committen (steht in `.gitignore`).
 5. **Testen**: Formular im Browser öffnen, einmal ausfüllen, danach in
    der DB prüfen, ob `feedback_submissions`/`feedback_answers` befüllt
    wurden.
+
+## Automatisches Deployment (GitHub Actions)
+
+`.github/workflows/deploy.yml` deployt bei jedem Push auf `main`
+automatisch per SFTP nach `/messefeedback/`. Die `config.php` wird
+dabei bei jedem Lauf frisch aus **verschlüsselten GitHub Secrets**
+erzeugt – die Zugangsdaten landen dadurch nie im Git-Repo/der Historie,
+nur auf dem GitHub-Runner (temporär) und auf dem Server.
+
+**Einmalig einrichten**: Im Repo unter *Settings → Secrets and
+variables → Actions → New repository secret* folgende Secrets anlegen:
+
+| Secret               | Beispielwert                                    |
+|----------------------|--------------------------------------------------|
+| `SFTP_HOST`          | `home26909034.1and1-data.host`                   |
+| `SFTP_USERNAME`      | `p7622742`                                        |
+| `SFTP_PASSWORD`      | dein SFTP-Passwort                                |
+| `DB_HOST`            | `db5021298638.hosting-data.io`                   |
+| `DB_NAME`            | `dbs16066605`                                     |
+| `DB_USER`            | `dbu1480283`                                      |
+| `DB_PASS`            | dein DB-Passwort                                  |
+| `MAIL_FROM_ADDRESS`  | `c.ringler@ringler-online.com`                    |
+| `MAIL_FROM_NAME`     | `Innotrans Messefeedback`                         |
+| `CLAUDE_API_KEY`     | dein Claude-API-Key                               |
+| `CLAUDE_MODEL`       | `claude-haiku-4-5-20251001`                       |
+| `APP_BASE_URL`       | `https://www.ringler-online.com/messefeedback`   |
+| `CRON_SECRET`        | langer zufälliger String (siehe oben)             |
+
+Danach reicht ein `git push` auf `main` – der Workflow lädt den
+kompletten Stand automatisch hoch. Fortschritt/Fehler siehe Reiter
+**Actions** im Repo.
+
+Falls der SFTP-Account bei IONOS nur reines SFTP (kein SSH-Shell)
+erlaubt, ist das über `sftp_only: true` in der Workflow-Datei bereits
+berücksichtigt.
 
 ## Cronjobs einrichten
 

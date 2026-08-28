@@ -1,0 +1,70 @@
+name: Deploy to IONOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      # config.php wird bei jedem Deploy frisch aus GitHub Secrets erzeugt
+      # und existiert nur auf dem Runner + danach auf dem Server – nie im Git-Repo.
+      - name: Generate config.php from secrets
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          MAIL_FROM_ADDRESS: ${{ secrets.MAIL_FROM_ADDRESS }}
+          MAIL_FROM_NAME: ${{ secrets.MAIL_FROM_NAME }}
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          php -r '
+            $cfg = [
+                "db" => [
+                    "host" => getenv("DB_HOST"),
+                    "name" => getenv("DB_NAME"),
+                    "user" => getenv("DB_USER"),
+                    "pass" => getenv("DB_PASS"),
+                ],
+                "mail" => [
+                    "from_address" => getenv("MAIL_FROM_ADDRESS"),
+                    "from_name" => getenv("MAIL_FROM_NAME"),
+                ],
+                "claude" => [
+                    "api_key" => getenv("CLAUDE_API_KEY"),
+                    "model" => getenv("CLAUDE_MODEL") ?: "claude-haiku-4-5-20251001",
+                ],
+                "app" => [
+                    "base_url" => getenv("APP_BASE_URL"),
+                    "cron_secret" => getenv("CRON_SECRET"),
+                    "timezone" => "Europe/Berlin",
+                ],
+            ];
+            file_put_contents("config.php", "<?php\n\nreturn " . var_export($cfg, true) . ";\n");
+          '
+
+      - name: Deploy via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+        with:
+          username: ${{ secrets.SFTP_USERNAME }}
+          server: ${{ secrets.SFTP_HOST }}
+          port: 22
+          password: ${{ secrets.SFTP_PASSWORD }}
+          local_path: './*'
+          remote_path: '/messefeedback'
+          sftp_only: true
+          sftpArgs: '-o ConnectTimeout=10'
