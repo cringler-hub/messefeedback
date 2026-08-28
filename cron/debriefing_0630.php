@@ -82,7 +82,7 @@ foreach ($rows as $row) {
     if ($mailOk) {
         $sent++;
     } else {
-        $msg = "debriefing_0630.php: Mail an {$row['email']} konnte nicht gesendet werden.";
+        $msg = "debriefing_0630.php: Mail an {$row['email']} konnte nicht gesendet werden: " . (get_last_mail_error() ?? 'unbekannter Fehler');
         error_log($msg);
         echo $msg . "\n";
         $failed++;

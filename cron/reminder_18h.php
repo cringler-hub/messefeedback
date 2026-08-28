@@ -49,7 +49,9 @@ foreach ($pending as $employee) {
         $logStmt->execute([$employee['id'], $today]);
         $sent++;
     } else {
-        error_log("reminder_18h.php: Mail an {$employee['email']} konnte nicht gesendet werden.");
+        $msg = "reminder_18h.php: Mail an {$employee['email']} konnte nicht gesendet werden: " . (get_last_mail_error() ?? 'unbekannter Fehler');
+        error_log($msg);
+        echo $msg . "\n";
     }
 }
 

@@ -40,8 +40,14 @@ function send_mail(string $to, string $subject, string $body): bool
         return true;
     } catch (Throwable $e) {
         error_log('send_mail: ' . $e->getMessage());
+        $GLOBALS['__last_mail_error'] = $e->getMessage();
         return false;
     }
+}
+
+function get_last_mail_error(): ?string
+{
+    return $GLOBALS['__last_mail_error'] ?? null;
 }
 
 function smtp_deliver(array $smtpCfg, string $from, string $to, string $data): void
