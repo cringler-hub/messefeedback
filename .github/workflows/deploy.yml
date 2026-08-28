@@ -27,6 +27,10 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
           MAIL_FROM_ADDRESS: ${{ secrets.MAIL_FROM_ADDRESS }}
           MAIL_FROM_NAME: ${{ secrets.MAIL_FROM_NAME }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
@@ -43,6 +47,13 @@ jobs:
                 "mail" => [
                     "from_address" => getenv("MAIL_FROM_ADDRESS"),
                     "from_name" => getenv("MAIL_FROM_NAME"),
+                ],
+                "smtp" => [
+                    "host" => getenv("SMTP_HOST"),
+                    "port" => (int) getenv("SMTP_PORT"),
+                    "username" => getenv("SMTP_USERNAME"),
+                    "password" => getenv("SMTP_PASSWORD"),
+                    "encryption" => "tls",
                 ],
                 "claude" => [
                     "api_key" => getenv("CLAUDE_API_KEY"),

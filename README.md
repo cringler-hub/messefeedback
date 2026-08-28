@@ -68,6 +68,10 @@ variables → Actions → New repository secret* folgende Secrets anlegen:
 | `DB_PASS`            | dein DB-Passwort                                  |
 | `MAIL_FROM_ADDRESS`  | `c.ringler@ringler-online.com`                    |
 | `MAIL_FROM_NAME`     | `Innotrans Messefeedback`                         |
+| `SMTP_HOST`          | `smtp.ionos.de`                                   |
+| `SMTP_PORT`          | `587`                                             |
+| `SMTP_USERNAME`      | `c.ringler@ringler-online.com`                    |
+| `SMTP_PASSWORD`      | Passwort des E-Mail-Postfachs                     |
 | `CLAUDE_API_KEY`     | dein Claude-API-Key                               |
 | `CLAUDE_MODEL`       | `claude-haiku-4-5-20251001`                       |
 | `APP_BASE_URL`       | `https://www.ringler-online.com/messefeedback`   |
@@ -117,13 +121,13 @@ Mitarbeiter jederzeit in der Tabelle `employees` ergänzen/deaktivieren
 (`active = 0` statt löschen, damit die Historie erhalten bleibt) –
 kein Redeploy nötig.
 
-## Deliverability-Hinweis
+## E-Mail-Versand
 
-`lib/mailer.php` nutzt PHP `mail()`. Das funktioniert auf IONOS meist
-zuverlässig, sofern `from_address` zu einer Mailbox der Domain gehört.
-Falls Mails im Spam landen oder nicht ankommen: auf SMTP-Versand über
-den IONOS-Mailserver (z. B. mit PHPMailer) umstellen – dafür `lib/mailer.php`
-anpassen, der Rest der Anwendung bleibt unverändert.
+`lib/mailer.php` verschickt Mails per echtem SMTP-Login über das
+Postfach (PHP `mail()` ist auf IONOS Shared Hosting nicht zuverlässig
+und wurde deshalb nicht verwendet). Zugangsdaten kommen aus den
+`SMTP_*`-Secrets oben – `SMTP_USERNAME`/`SMTP_PASSWORD` sind Login und
+Passwort des Postfachs, nicht die Absenderadresse.
 
 ## Fragenkatalog erweitern
 

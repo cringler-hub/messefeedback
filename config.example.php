@@ -16,6 +16,15 @@ return [
         'from_address' => 'c.ringler@ringler-online.com',
         'from_name'    => 'Innotrans Messefeedback',
     ],
+    'smtp' => [
+        // Echter SMTP-Versand über das Postfach (PHP mail() ist auf
+        // IONOS Shared Hosting nicht zuverlässig).
+        'host'       => 'smtp.ionos.de',
+        'port'       => 587,
+        'username'   => 'c.ringler@ringler-online.com',
+        'password'   => 'mailbox-passwort',
+        'encryption' => 'tls',
+    ],
     'claude' => [
         'api_key' => 'sk-ant-...',
         // Günstiges, schnelles Modell reicht für kurze Zusammenfassungen.
