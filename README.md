@@ -1,10 +1,11 @@
 # Messefeedback Innotrans – Tages-Debriefing
 
 Tägliches Feedback-Formular für Mitarbeiter auf der Innotrans, daraus
-per Claude API ein persönliches Debriefing + Motivationsspruch, das
-morgens um 6:30 Uhr per Mail rausgeht. Um 18:00 Uhr gibt es eine
-Erinnerungsmail an alle, die noch kein Feedback für den Tag abgegeben
-haben.
+per Claude API EIN gemeinsames Team-Debriefing + Motivationsspruch für
+den ganzen Tag, das morgens um 6:30 Uhr identisch an alle aktiven
+Mitarbeiter per Mail rausgeht (kein individuelles Debriefing pro
+Person). Um 18:00 Uhr gibt es eine Erinnerungsmail an alle, die noch
+kein Feedback für den Tag abgegeben haben.
 
 Reines PHP + MySQL, läuft auf IONOS Shared Hosting ohne Node/Build-Schritt.
 

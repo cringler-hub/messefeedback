@@ -8,38 +8,40 @@ class ClaudeApiException extends RuntimeException
 }
 
 /**
- * Erzeugt aus dem Tagesfeedback eines Mitarbeiters ein kurzes
- * Debriefing plus einen dazu passenden Motivationsspruch für den
- * nächsten Tag.
+ * Erzeugt aus dem gesammelten Tagesfeedback aller Mitarbeiter ein
+ * gemeinsames Team-Debriefing plus einen Motivationsspruch für den
+ * nächsten Tag. Alle Mitarbeiter erhalten denselben Text.
  *
  * @return array{summary: string, quote: string}
  */
-function generate_debriefing(string $employeeName, string $feedbackText): array
+function generate_team_debriefing(string $combinedFeedbackText, int $employeeCount): array
 {
     $cfg = load_config()['claude'];
 
     $system = <<<SYS
-Du bist Assistent für ein tägliches Mitarbeiter-Debriefing auf einer
-Messe (Innotrans). Du bekommst das strukturierte Tagesfeedback eines
-Mitarbeiters/einer Mitarbeiterin. Erstelle daraus:
+Du bist Assistent für ein tägliches Team-Debriefing auf einer Messe
+(Innotrans). Du bekommst das strukturierte Tagesfeedback mehrerer
+Mitarbeiter/innen desselben Messetags, jeweils mit Namen. Erstelle
+daraus EIN gemeinsames Debriefing für das ganze Team (nicht pro
+Person einzeln):
 
-1. "summary": Ein kurzes, persönliches Debriefing (3-5 Sätze, per Du,
-   warmer aber professioneller Ton). Geh auf die wichtigsten Punkte
-   ein (Highlights, Probleme, Stimmung). Bei Problemen: wertschätzend,
-   nicht dramatisierend. Keine Floskeln, keine Wiederholung aller
-   Antworten wörtlich, sondern eine echte Verdichtung.
+1. "summary": Eine kurze Team-Zusammenfassung des Tages (4-6 Sätze,
+   per Ihr/Euch, warmer aber professioneller Ton). Verdichte die
+   wichtigsten Punkte über alle Rückmeldungen hinweg (Gesamtstimmung,
+   Highlights, gemeldete Probleme, Konkurrenzbeobachtungen). Bei
+   Bedarf einzelne Personen namentlich erwähnen, wenn es zum
+   Verständnis beiträgt. Keine Floskeln, keine wörtliche Wiederholung
+   aller Antworten, sondern eine echte Verdichtung fürs ganze Team.
 2. "quote": Ein motivierender Spruch für den kommenden Tag (1-2
-   Sätze), der zur berichteten Stimmung/Situation passt (z. B.
-   aufmunternd nach einem schwierigen Tag, bestärkend nach einem
-   guten Tag). Keine abgedroschenen Standardsprüche, möglichst
-   variieren.
+   Sätze) fürs ganze Team, der zur berichteten Gesamtstimmung passt.
+   Keine abgedroschenen Standardsprüche, möglichst variieren.
 
 Antworte AUSSCHLIESSLICH mit einem JSON-Objekt exakt in dieser Form,
 ohne weiteren Text davor oder danach:
 {"summary": "...", "quote": "..."}
 SYS;
 
-    $userMessage = "Mitarbeiter/in: {$employeeName}\n\nTagesfeedback:\n{$feedbackText}";
+    $userMessage = "Feedback von {$employeeCount} Mitarbeiter(n) für denselben Messetag:\n\n{$combinedFeedbackText}";
 
     $payload = json_encode([
         'model' => $cfg['model'],
