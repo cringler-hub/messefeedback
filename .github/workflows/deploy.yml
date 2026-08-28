@@ -65,6 +65,6 @@ jobs:
           port: 22
           password: ${{ secrets.SFTP_PASSWORD }}
           local_path: './*'
-          remote_path: '/messefeedback'
+          remote_path: 'messefeedback'
           sftp_only: true
           sftpArgs: '-o ConnectTimeout=10'
