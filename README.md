@@ -60,12 +60,12 @@ variables → Actions → New repository secret* folgende Secrets anlegen:
 
 | Secret               | Beispielwert                                    |
 |----------------------|--------------------------------------------------|
-| `SFTP_HOST`          | `home26909034.1and1-data.host`                   |
-| `SFTP_USERNAME`      | `p7622742`                                        |
+| `SFTP_HOST`          | dein SFTP-Hostname (IONOS-Kundenportal)           |
+| `SFTP_USERNAME`      | dein SFTP-Benutzername                            |
 | `SFTP_PASSWORD`      | dein SFTP-Passwort                                |
-| `DB_HOST`            | `db5021298638.hosting-data.io`                   |
-| `DB_NAME`            | `dbs16066605`                                     |
-| `DB_USER`            | `dbu1480283`                                      |
+| `DB_HOST`            | dein DB-Hostname (IONOS-Kundenportal)             |
+| `DB_NAME`            | dein DB-Name                                      |
+| `DB_USER`            | dein DB-Benutzername                              |
 | `DB_PASS`            | dein DB-Passwort                                  |
 | `MAIL_FROM_ADDRESS`  | `c.ringler@ringler-online.com`                    |
 | `MAIL_FROM_NAME`     | `Innotrans Messefeedback`                         |

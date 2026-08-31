@@ -3,5 +3,5 @@
 -- INSERT/UPDATE/DELETE erweiterbar, ohne das Schema zu ändern.
 
 INSERT INTO employees (name, email) VALUES
-    ('Christian Ringler', 'christian.ringler@fms.funkwerk.com')
+    ('Max Mustermann', 'max.mustermann@example.com')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
