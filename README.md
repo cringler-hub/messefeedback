@@ -88,33 +88,42 @@ berücksichtigt.
 
 ## Cronjobs einrichten
 
-Im IONOS-Kundenportal unter „Cronjobs“ zwei tägliche Jobs anlegen. Je
-nach Tarif entweder CLI-Ausführung oder URL-Aufruf (per `wget`/`curl`)
-– beides wird unterstützt:
+`.github/workflows/cron-triggers.yml` löst beide Cronjobs **minutengenau
+über GitHub Actions** aus (ruft die token-geschützten Cron-URLs per
+`curl` auf). Das ist nötig, weil IONOS' eigene Cronjob-Funktion je nach
+Tarif nur grobe 6-Stunden-Zeitfenster kennt (nachts/morgens/mittags/
+abends), keine exakte Uhrzeit – ungeeignet für "Punkt 6:30 Uhr".
 
-**18:00 Uhr – Erinnerung**
+Voraussetzung: Die Secrets `APP_BASE_URL` und `CRON_SECRET` sind schon
+für den Deploy-Workflow gesetzt (siehe oben) und werden hier
+wiederverwendet, es sind keine weiteren Secrets nötig.
+
+**Wichtig**: Die GitHub-Actions-Cronzeiten (`30 4 * * *` = 06:30,
+`0 16 * * *` = 18:00) sind in UTC und für die Sommerzeit (UTC+2)
+gerechnet. Nach Ende der Sommerzeit (Ende Oktober) müssen die
+Uhrzeiten in der Workflow-Datei um 1 Stunde nach hinten verschoben
+werden.
+
+Manuell testen: Im Actions-Tab den Workflow **"Cron Triggers"**
+öffnen und **"Run workflow"** klicken (ruft beim manuellen Auslösen
+beide Endpunkte auf).
+
+Falls in IONOS bereits eigene, ungenaue Cronjobs für diese URLs
+angelegt wurden, sollten die **deaktiviert/gelöscht** werden, damit es
+nicht zu unerwünschten Erinnerungsmails zur falschen Tageszeit kommt
+(das Debriefing selbst ist harmlos doppelt aufrufbar, die Erinnerung
+zur falschen Zeit aber nicht).
+
+Beide Skripte sind zusätzlich idempotent (Unique-Keys in
+`reminder_log` bzw. `debriefings`): Ein versehentlicher Doppelaufruf
+verschickt keine Mails doppelt.
+
+Zum direkten Testen bleiben die URLs auch weiterhin manuell im
+Browser aufrufbar:
 ```
-# CLI:
-php /pfad/zu/messefeedback/cron/reminder_18h.php
-# oder URL:
 https://www.ringler-online.com/messefeedback/cron/reminder_18h.php?token=DEIN_CRON_SECRET
-```
-
-**06:30 Uhr – Debriefing**
-```
-# CLI:
-php /pfad/zu/messefeedback/cron/debriefing_0630.php
-# oder URL:
 https://www.ringler-online.com/messefeedback/cron/debriefing_0630.php?token=DEIN_CRON_SECRET
 ```
-
-`DEIN_CRON_SECRET` ist der Wert aus `config.php` → `app.cron_secret`.
-Ohne gültiges Token liefert der Aufruf `403 Forbidden` – so kann
-niemand sonst im Internet die Jobs auslösen.
-
-Beide Skripte sind idempotent (Unique-Keys in `reminder_log` bzw.
-`debriefings`): Ein versehentlicher Doppelaufruf verschickt keine
-Mails doppelt.
 
 ## Mitarbeiterliste pflegen
 

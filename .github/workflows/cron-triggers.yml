@@ -1,0 +1,32 @@
+name: Cron Triggers
+
+# IONOS' Cronjob-Funktion im gebuchten Tarif kennt nur grobe
+# 6-Stunden-Zeitfenster (nachts/morgens/mittags/abends), keine exakte
+# Uhrzeit. GitHub Actions unterstützt minutengenaue Cron-Ausdrücke -
+# hier rufen wir stattdessen zur exakten Zeit die token-geschützten
+# Cron-URLs auf dem Webspace per HTTP auf.
+#
+# Zeiten sind in UTC angegeben (Europe/Berlin ist während der
+# Sommerzeit/Innotrans-Saison UTC+2). Nach Ende der Sommerzeit
+# (Ende Oktober) müssten die Uhrzeiten um 1h nach hinten verschoben
+# werden (z. B. 06:30 Berlin -> 05:30 statt 04:30 UTC).
+
+on:
+  schedule:
+    - cron: '30 4 * * *'  # 06:30 Europe/Berlin (Sommerzeit) - Team-Debriefing
+    - cron: '0 16 * * *'  # 18:00 Europe/Berlin (Sommerzeit) - Erinnerungsmail
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Team-Debriefing auslösen (06:30)
+        if: github.event.schedule == '30 4 * * *' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -fsS "${{ secrets.APP_BASE_URL }}/cron/debriefing_0630.php?token=${{ secrets.CRON_SECRET }}"
+
+      - name: Erinnerungsmail auslösen (18:00)
+        if: github.event.schedule == '0 16 * * *' || github.event_name == 'workflow_dispatch'
+        run: |
+          curl -fsS "${{ secrets.APP_BASE_URL }}/cron/reminder_18h.php?token=${{ secrets.CRON_SECRET }}"
