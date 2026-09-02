@@ -4,7 +4,7 @@ Tägliches Feedback-Formular für Mitarbeiter auf der Innotrans, daraus
 per Claude API EIN gemeinsames Team-Debriefing + Motivationsspruch für
 den ganzen Tag, das morgens um 6:30 Uhr identisch an alle aktiven
 Mitarbeiter per Mail rausgeht (kein individuelles Debriefing pro
-Person). Um 18:00 Uhr gibt es eine Erinnerungsmail an alle, die noch
+Person). Um 17:45 Uhr gibt es eine Erinnerungsmail an alle, die noch
 kein Feedback für den Tag abgegeben haben.
 
 Reines PHP + MySQL, läuft auf IONOS Shared Hosting ohne Node/Build-Schritt.
@@ -18,7 +18,7 @@ danke.php               Danke-Seite nach Absenden
 assets/style.css        Styling
 config.example.php      Vorlage – auf dem Server nach config.php kopieren
 lib/                     PHP-Hilfsklassen (DB, Mail, Claude API, Fragenkatalog)
-cron/reminder_18h.php   18:00-Erinnerungsmail
+cron/reminder_18h.php   17:45-Erinnerungsmail
 cron/debriefing_0630.php 06:30-Debriefing-Mail
 db/schema.sql           Tabellen
 db/seed_employees.sql   Mitarbeiterliste zum Import
@@ -99,7 +99,7 @@ für den Deploy-Workflow gesetzt (siehe oben) und werden hier
 wiederverwendet, es sind keine weiteren Secrets nötig.
 
 **Wichtig**: Die GitHub-Actions-Cronzeiten (`30 4 * * *` = 06:30,
-`0 16 * * *` = 18:00) sind in UTC und für die Sommerzeit (UTC+2)
+`45 15 * * *` = 17:45) sind in UTC und für die Sommerzeit (UTC+2)
 gerechnet. Nach Ende der Sommerzeit (Ende Oktober) müssen die
 Uhrzeiten in der Workflow-Datei um 1 Stunde nach hinten verschoben
 werden.

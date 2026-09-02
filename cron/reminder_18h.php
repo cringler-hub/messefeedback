@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// Täglich um 18:00 Uhr per Cron aufrufen. Verschickt an alle aktiven
+// Täglich um 17:45 Uhr per Cron aufrufen. Verschickt an alle aktiven
 // Mitarbeiter, die heute noch kein Feedback abgegeben haben, eine
 // kurze Erinnerungsmail mit Link zum Formular.
 

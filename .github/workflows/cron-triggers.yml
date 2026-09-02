@@ -13,8 +13,8 @@ name: Cron Triggers
 
 on:
   schedule:
-    - cron: '30 4 * * *'  # 06:30 Europe/Berlin (Sommerzeit) - Team-Debriefing
-    - cron: '0 16 * * *'  # 18:00 Europe/Berlin (Sommerzeit) - Erinnerungsmail
+    - cron: '30 4 * * *'   # 06:30 Europe/Berlin (Sommerzeit) - Team-Debriefing
+    - cron: '45 15 * * *'  # 17:45 Europe/Berlin (Sommerzeit) - Erinnerungsmail
   workflow_dispatch: {}
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
         run: |
           curl -fsS "${{ secrets.APP_BASE_URL }}/cron/debriefing_0630.php?token=${{ secrets.CRON_SECRET }}"
 
-      - name: Erinnerungsmail auslösen (18:00)
-        if: github.event.schedule == '0 16 * * *' || github.event_name == 'workflow_dispatch'
+      - name: Erinnerungsmail auslösen (17:45)
+        if: github.event.schedule == '45 15 * * *' || github.event_name == 'workflow_dispatch'
         run: |
           curl -fsS "${{ secrets.APP_BASE_URL }}/cron/reminder_18h.php?token=${{ secrets.CRON_SECRET }}"
