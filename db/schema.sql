@@ -52,14 +52,15 @@ CREATE TABLE IF NOT EXISTS debriefings (
         REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Protokoll der 18:00-Erinnerungsmails (idempotenz, falls der
--- Cronjob mehrfach ausgelöst wird).
+-- Verlauf der Erinnerungsmails. Kein Unique-Key mehr auf
+-- employee+Tag - die Erinnerung wird bei jedem Lauf erneut an alle
+-- ohne Feedback verschickt, auch bei mehrfachem Aufruf am selben Tag.
 CREATE TABLE IF NOT EXISTS reminder_log (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     employee_id INT UNSIGNED NOT NULL,
     reminder_date DATE NOT NULL,
     sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_employee_reminder_day (employee_id, reminder_date),
+    INDEX idx_employee_id (employee_id),
     CONSTRAINT fk_reminder_employee FOREIGN KEY (employee_id)
         REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

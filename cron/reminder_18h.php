@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 // Täglich um 17:45 Uhr per Cron aufrufen. Verschickt an alle aktiven
 // Mitarbeiter, die heute noch kein Feedback abgegeben haben, eine
-// kurze Erinnerungsmail mit Link zum Formular.
+// kurze Erinnerungsmail mit Link zum Formular. Wird bei mehrfachem
+// Aufruf am selben Tag jedes Mal erneut verschickt (reminder_log
+// dient nur noch als Verlauf, nicht mehr als Sperre).
 
 require_once __DIR__ . '/../lib/config.php';
 require_once __DIR__ . '/../lib/db.php';
@@ -24,13 +26,9 @@ $pending = $pdo->prepare(
        AND NOT EXISTS (
            SELECT 1 FROM feedback_submissions fs
            WHERE fs.employee_id = e.id AND fs.feedback_date = ?
-       )
-       AND NOT EXISTS (
-           SELECT 1 FROM reminder_log rl
-           WHERE rl.employee_id = e.id AND rl.reminder_date = ?
        )"
 );
-$pending->execute([$today, $today]);
+$pending->execute([$today]);
 $pending = $pending->fetchAll();
 
 $formUrl = rtrim($config['app']['base_url'], '/') . '/';
