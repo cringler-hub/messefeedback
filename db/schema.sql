@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS feedback_submissions (
     employee_id INT UNSIGNED NOT NULL,
     feedback_date DATE NOT NULL,
     submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_employee_id (employee_id),
     CONSTRAINT fk_submission_employee FOREIGN KEY (employee_id)
         REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
