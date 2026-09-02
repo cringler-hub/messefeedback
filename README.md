@@ -88,25 +88,32 @@ berücksichtigt.
 
 ## Cronjobs einrichten
 
-`.github/workflows/cron-triggers.yml` löst beide Cronjobs **minutengenau
-über GitHub Actions** aus (ruft die token-geschützten Cron-URLs per
-`curl` auf). Das ist nötig, weil IONOS' eigene Cronjob-Funktion je nach
-Tarif nur grobe 6-Stunden-Zeitfenster kennt (nachts/morgens/mittags/
-abends), keine exakte Uhrzeit – ungeeignet für "Punkt 6:30 Uhr".
+Die Zeitsteuerung läuft über **n8n** (Schedule Trigger + HTTP Request
+Node), das täglich zur exakten Uhrzeit die token-geschützten Cron-URLs
+aufruft. Ausprobiert wurden vorher sowohl IONOS' eigene Cronjob-Funktion
+(kennt je nach Tarif nur grobe 6-Stunden-Zeitfenster wie "morgens 6-12
+Uhr", keine exakte Uhrzeit) als auch GitHub Actions' `schedule`-Trigger
+(in der Praxis um mehrere Stunden verspätet oder zur falschen Zeit
+ausgelöst) – beides ungeeignet für "Punkt 6:30 Uhr".
 
-Voraussetzung: Die Secrets `APP_BASE_URL` und `CRON_SECRET` sind schon
-für den Deploy-Workflow gesetzt (siehe oben) und werden hier
-wiederverwendet, es sind keine weiteren Secrets nötig.
+**Einrichtung in n8n** (zwei Workflows):
 
-**Wichtig**: Die GitHub-Actions-Cronzeiten (`30 4 * * *` = 06:30,
-`45 15 * * *` = 17:45) sind in UTC und für die Sommerzeit (UTC+2)
-gerechnet. Nach Ende der Sommerzeit (Ende Oktober) müssen die
-Uhrzeiten in der Workflow-Datei um 1 Stunde nach hinten verschoben
-werden.
+1. Neuen Workflow anlegen, Node **"Schedule Trigger"** hinzufügen:
+   Days-Interval, Uhrzeit `06:30`, Zeitzone `Europe/Berlin` (übernimmt
+   automatisch Sommer-/Winterzeit).
+2. Node **"HTTP Request"** anhängen (Methode `GET`), URL:
+   ```
+   https://www.ringler-online.com/messefeedback/cron/debriefing_0630.php?token=DEIN_CRON_SECRET
+   ```
+3. Workflow aktivieren.
+4. Zweiten Workflow analog für `17:45` Uhr mit:
+   ```
+   https://www.ringler-online.com/messefeedback/cron/reminder_18h.php?token=DEIN_CRON_SECRET
+   ```
 
-Manuell testen: Im Actions-Tab den Workflow **"Cron Triggers"**
-öffnen und **"Run workflow"** klicken (ruft beim manuellen Auslösen
-beide Endpunkte auf).
+`.github/workflows/cron-triggers.yml` ruft dieselben zwei Endpunkte nur
+noch **manuell** auf (Actions-Tab → "Cron Triggers" → "Run workflow"),
+nützlich zum Testen ohne auf die Uhrzeit zu warten.
 
 Falls in IONOS bereits eigene, ungenaue Cronjobs für diese URLs
 angelegt wurden, sollten die **deaktiviert/gelöscht** werden, damit es
