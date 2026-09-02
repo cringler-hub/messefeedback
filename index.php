@@ -30,9 +30,7 @@ $error = isset($_GET['error']) ? (string) $_GET['error'] : null;
         <p><?= htmlspecialchars($today, ENT_QUOTES) ?> · dauert ca. 1 Minute</p>
     </header>
 
-    <?php if ($error === 'duplicate'): ?>
-        <div class="error-box">Für dich liegt für heute schon ein Feedback vor. Danke, du musst es nicht nochmal ausfüllen!</div>
-    <?php elseif ($error === 'invalid'): ?>
+    <?php if ($error === 'invalid'): ?>
         <div class="error-box">Bitte alle Pflichtfragen beantworten und nochmal absenden.</div>
     <?php endif; ?>
 

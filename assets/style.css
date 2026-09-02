@@ -165,3 +165,5 @@ textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
 }
 
 .thanks .emoji { font-size: 2.5rem; }
+
+.thanks a { color: var(--accent); font-weight: 600; }

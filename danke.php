@@ -11,7 +11,8 @@
     <div class="card thanks">
         <div class="emoji">✅</div>
         <h1>Danke für dein Feedback!</h1>
-        <p>Morgen früh um 6:30 Uhr bekommst du dein persönliches Debriefing per Mail – inklusive Motivationsspruch für den Tag.</p>
+        <p>Morgen früh um 6:30 Uhr bekommt das ganze Team das gemeinsame Debriefing per Mail – inklusive Motivationsspruch für den Tag.</p>
+        <p>Ist dir später noch etwas aufgefallen? Du kannst jederzeit <a href="index.php">weiteres Feedback abgeben</a>.</p>
     </div>
 </div>
 </body>

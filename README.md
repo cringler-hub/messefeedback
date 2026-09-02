@@ -35,6 +35,9 @@ Web-Zugriff gesperrt.
 2. **Schema importieren**: `db/schema.sql` und danach `db/seed_employees.sql`
    (vorher Mitarbeiterliste ergänzen) über phpMyAdmin oder
    `mysql -h HOST -u USER -p DBNAME < db/schema.sql` importieren.
+   Falls die Datenbank schon vorher existierte (vor der Umstellung auf
+   mehrfaches Feedback pro Tag): zusätzlich einmalig
+   `db/migration_allow_multiple_submissions.sql` ausführen.
 3. **Zielordner anlegen**: Einmalig per FTP-Client oder Datei-Manager
    einen leeren Ordner `/messefeedback/` im Webspace anlegen (die
    automatische Deployment-Action unten legt ihn nicht selbst an).
@@ -137,6 +140,16 @@ https://www.ringler-online.com/messefeedback/cron/debriefing_0630.php?token=DEIN
 Mitarbeiter jederzeit in der Tabelle `employees` ergänzen/deaktivieren
 (`active = 0` statt löschen, damit die Historie erhalten bleibt) –
 kein Redeploy nötig.
+
+## Mehrfaches Feedback pro Tag
+
+Mitarbeiter können das Formular am selben Tag beliebig oft ausfüllen
+(kein Unique-Key auf employee+Tag in `feedback_submissions`). Das
+06:30-Debriefing fasst am nächsten Morgen automatisch **alle**
+Einreichungen des Vortags je Mitarbeiter zu einem Team-Debriefing
+zusammen. Die 17:45-Erinnerung wird nur an Mitarbeiter ohne **jegliche**
+Einreichung an dem Tag verschickt (schon einmal abgeschickt reicht,
+um nicht mehr erinnert zu werden).
 
 ## E-Mail-Versand
 

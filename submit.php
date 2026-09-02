@@ -100,9 +100,6 @@ try {
     $pdo->commit();
 } catch (PDOException $e) {
     $pdo->rollBack();
-    if ($e->getCode() === '23000') {
-        redirect_with_error('duplicate');
-    }
     error_log('Messefeedback submit.php: ' . $e->getMessage());
     http_response_code(500);
     die('Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.');

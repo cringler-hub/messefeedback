@@ -10,14 +10,15 @@ CREATE TABLE IF NOT EXISTS employees (
     UNIQUE KEY uniq_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Eine Zeile pro Mitarbeiter und Tag. Der Unique-Key verhindert
--- Mehrfach-Einreichungen am selben Tag.
+-- Eine Zeile pro Einreichung. Mitarbeiter können am selben Tag
+-- beliebig oft Feedback abgeben (kein Unique-Key auf employee+Tag) -
+-- das Debriefing fasst am nächsten Morgen automatisch alle
+-- Einreichungen eines Tages zusammen.
 CREATE TABLE IF NOT EXISTS feedback_submissions (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     employee_id INT UNSIGNED NOT NULL,
     feedback_date DATE NOT NULL,
     submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uniq_employee_day (employee_id, feedback_date),
     CONSTRAINT fk_submission_employee FOREIGN KEY (employee_id)
         REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
