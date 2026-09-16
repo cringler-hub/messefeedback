@@ -21,15 +21,28 @@ $error = isset($_GET['error']) ? (string) $_GET['error'] : null;
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Messefeedback Innotrans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="container">
-    <header class="page-header">
+<header class="hero">
+    <p class="hero-watermark" aria-hidden="true">FEEDBACK FEEDBACK</p>
+    <div class="hero-inner">
+        <div class="brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12a8 8 0 0 1 8-8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+                <path d="M8 12a4 4 0 0 1 4-4" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+                <circle cx="12" cy="12" r="1.6" fill="#fff"/>
+            </svg>
+            <span>funkwerk mobility solutions</span>
+        </div>
         <h1>Tagesfeedback Innotrans</h1>
-        <p><?= htmlspecialchars($today, ENT_QUOTES) ?> · dauert ca. 1 Minute</p>
-    </header>
-
+        <p class="meta"><?= htmlspecialchars($today, ENT_QUOTES) ?> · dauert ca. 1 Minute</p>
+    </div>
+</header>
+<div class="container">
     <?php if ($error === 'invalid'): ?>
         <div class="error-box">Bitte alle Pflichtfragen beantworten und nochmal absenden.</div>
     <?php endif; ?>

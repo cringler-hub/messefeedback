@@ -1,12 +1,15 @@
 :root {
-    --bg: #f4f6f8;
+    --bg: #ffffff;
     --card: #ffffff;
-    --text: #1b2430;
-    --muted: #64748b;
-    --accent: #2563eb;
+    --text: #1b1b1f;
+    --muted: #6b6b74;
+    --accent: #7a1b46;
+    --accent-dark: #591333;
+    --accent-soft: #f6e8ee;
     --accent-contrast: #ffffff;
-    --border: #d6dce3;
-    --radius: 12px;
+    --border: #dcdcdf;
+    --radius: 16px;
+    --radius-pill: 999px;
 }
 
 * { box-sizing: border-box; }
@@ -16,7 +19,7 @@ body {
     padding: 0 0 3rem;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .container {
@@ -25,19 +28,73 @@ body {
     padding: 1.25rem 1rem;
 }
 
-header.page-header {
+/* Hero-Banner im Funkwerk-Look: kräftige Akzentfarbe, überdimensionierter
+   blasser Wasserzeichen-Schriftzug im Hintergrund, asymmetrisch
+   abgerundete Ecke. */
+.hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    padding: 1.75rem 1rem 2.25rem;
+    border-radius: 0 0 40px 0;
+}
+
+.hero-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.hero-watermark {
+    position: absolute;
+    top: -0.5rem;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    margin: 0;
+    font-size: clamp(3.5rem, 22vw, 7rem);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+    overflow: hidden;
     text-align: center;
-    padding: 1.5rem 1rem 0.5rem;
+    pointer-events: none;
+    user-select: none;
 }
 
-header.page-header h1 {
-    font-size: 1.4rem;
-    margin: 0.25rem 0;
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
 }
 
-header.page-header p {
-    color: var(--muted);
-    margin: 0.25rem 0 0;
+.brand svg { flex-shrink: 0; }
+
+.brand span {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+}
+
+.hero h1 {
+    position: relative;
+    margin: 0.2rem 0 0;
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+}
+
+.hero p.meta {
+    position: relative;
+    margin: 0.6rem 0 0;
+    color: rgba(255, 255, 255, 0.85);
     font-size: 0.95rem;
 }
 
@@ -60,15 +117,16 @@ header.page-header p {
 
 select, textarea, input[type="text"] {
     width: 100%;
-    padding: 0.7rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
     font-size: 1rem;
+    font-family: inherit;
     background: #fff;
     color: var(--text);
 }
 
-textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
+textarea { resize: vertical; min-height: 4.5rem; border-radius: 16px; }
 
 .option-row {
     display: flex;
@@ -96,8 +154,9 @@ textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
     text-align: center;
     padding: 0.75rem 0.5rem;
     border: 1.5px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-pill);
     font-size: 0.95rem;
+    font-weight: 500;
     color: var(--text);
     background: #fff;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -107,7 +166,12 @@ textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
     background: var(--accent);
     border-color: var(--accent);
     color: var(--accent-contrast);
-    font-weight: 600;
+    font-weight: 700;
+}
+
+.option-btn input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .scale-hint {
@@ -115,7 +179,8 @@ textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
     justify-content: space-between;
     font-size: 0.78rem;
     color: var(--muted);
-    margin-top: 0.4rem;
+    margin-top: 0.5rem;
+    padding: 0 0.3rem;
 }
 
 .follow-up {
@@ -127,34 +192,39 @@ textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
 
 .submit-btn {
     width: 100%;
-    padding: 0.9rem;
+    padding: 0.95rem;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--radius-pill);
     background: var(--accent);
     color: var(--accent-contrast);
+    font-family: inherit;
     font-size: 1.05rem;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     cursor: pointer;
+    transition: background 0.15s;
 }
 
-.submit-btn:active { opacity: 0.85; }
+.submit-btn:hover { background: var(--accent-dark); }
+.submit-btn:active { opacity: 0.9; }
 
 .error-box {
     background: #fef2f2;
     border: 1px solid #fecaca;
     color: #991b1b;
     padding: 0.75rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     margin-bottom: 1rem;
     font-size: 0.9rem;
 }
 
 .notice-box {
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    color: #065f46;
+    background: var(--accent-soft);
+    border: 1px solid #ecc9d9;
+    color: var(--accent-dark);
     padding: 0.9rem 1rem;
-    border-radius: 8px;
+    border-radius: var(--radius);
     margin-bottom: 1rem;
     font-size: 0.95rem;
 }
@@ -166,4 +236,11 @@ textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
 
 .thanks .emoji { font-size: 2.5rem; }
 
-.thanks a { color: var(--accent); font-weight: 600; }
+.thanks a { color: var(--accent); font-weight: 700; }
+
+.thanks h1 {
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--accent);
+}
