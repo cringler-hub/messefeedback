@@ -30,11 +30,6 @@ $submissions = $pdo->prepare(
 $submissions->execute([$feedbackDate]);
 $submissionRows = $submissions->fetchAll();
 
-if (count($submissionRows) === 0) {
-    echo "Keine Einreichungen für {$feedbackDate}, kein Debriefing generiert.\n";
-    exit;
-}
-
 // Alle aktiven Mitarbeiter sind die Empfänger - unabhängig davon, ob
 // sie selbst Feedback abgegeben haben, damit das ganze Team informiert ist.
 $recipients = $pdo->query('SELECT id, name, email FROM employees WHERE active = 1')->fetchAll();
@@ -52,28 +47,37 @@ if (count($pending) === 0) {
     exit;
 }
 
-$answerStmt = $pdo->prepare(
-    'SELECT question_key, answer_value FROM feedback_answers WHERE submission_id = ?'
-);
+if (count($submissionRows) === 0) {
+    // Trotzdem verschicken - das Team soll auch an einem Tag ohne
+    // Rückmeldungen eine Mail bekommen, statt gar nichts zu hören.
+    $result = [
+        'summary' => 'Für den gestrigen Messetag lag leider kein Feedback aus dem Team vor.',
+        'quote' => 'Ein neuer Tag, eine neue Chance – auf geht’s!',
+    ];
+} else {
+    $answerStmt = $pdo->prepare(
+        'SELECT question_key, answer_value FROM feedback_answers WHERE submission_id = ?'
+    );
 
-$feedbackBlocks = [];
-foreach ($submissionRows as $row) {
-    $answerStmt->execute([$row['submission_id']]);
-    $answersByKey = [];
-    foreach ($answerStmt->fetchAll() as $a) {
-        $answersByKey[$a['question_key']] = $a['answer_value'];
+    $feedbackBlocks = [];
+    foreach ($submissionRows as $row) {
+        $answerStmt->execute([$row['submission_id']]);
+        $answersByKey = [];
+        foreach ($answerStmt->fetchAll() as $a) {
+            $answersByKey[$a['question_key']] = $a['answer_value'];
+        }
+        $feedbackBlocks[] = "### {$row['name']}\n" . format_answers_for_prompt($answersByKey);
     }
-    $feedbackBlocks[] = "### {$row['name']}\n" . format_answers_for_prompt($answersByKey);
-}
-$combinedFeedback = implode("\n\n", $feedbackBlocks);
+    $combinedFeedback = implode("\n\n", $feedbackBlocks);
 
-try {
-    $result = generate_team_debriefing($combinedFeedback, count($submissionRows));
-} catch (Throwable $e) {
-    $msg = "debriefing_0630.php: Claude-Fehler: " . $e->getMessage();
-    error_log($msg);
-    echo $msg . "\n";
-    exit(1);
+    try {
+        $result = generate_team_debriefing($combinedFeedback, count($submissionRows));
+    } catch (Throwable $e) {
+        $msg = "debriefing_0630.php: Claude-Fehler: " . $e->getMessage();
+        error_log($msg);
+        echo $msg . "\n";
+        exit(1);
+    }
 }
 
 $body = "Guten Morgen,\n\n"
