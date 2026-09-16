@@ -4,7 +4,9 @@ declare(strict_types=1);
 // Täglich um 06:30 Uhr per Cron aufrufen. Fasst das Feedback ALLER
 // Mitarbeiter vom Vortag zu EINEM gemeinsamen Team-Debriefing +
 // Motivationsspruch zusammen und verschickt diesen identischen Text
-// an alle aktiven Mitarbeiter.
+// an alle aktiven Mitarbeiter. Wird bei mehrfachem Aufruf am selben
+// Tag jedes Mal erneut generiert und verschickt (zu Testzwecken keine
+// "schon verschickt"-Sperre mehr).
 
 require_once __DIR__ . '/../lib/config.php';
 require_once __DIR__ . '/../lib/db.php';
@@ -34,16 +36,8 @@ $submissionRows = $submissions->fetchAll();
 // sie selbst Feedback abgegeben haben, damit das ganze Team informiert ist.
 $recipients = $pdo->query('SELECT id, name, email FROM employees WHERE active = 1')->fetchAll();
 
-$pending = array_filter($recipients, function (array $employee) use ($pdo, $feedbackDate) {
-    $check = $pdo->prepare(
-        'SELECT 1 FROM debriefings WHERE employee_id = ? AND debriefing_date = ?'
-    );
-    $check->execute([$employee['id'], $feedbackDate]);
-    return $check->fetchColumn() === false;
-});
-
-if (count($pending) === 0) {
-    echo "Team-Debriefing für {$feedbackDate} wurde bereits an alle aktiven Mitarbeiter verschickt.\n";
+if (count($recipients) === 0) {
+    echo "Keine aktiven Mitarbeiter, kein Debriefing verschickt.\n";
     exit;
 }
 
@@ -94,7 +88,7 @@ $insertDebriefing = $pdo->prepare(
 $sent = 0;
 $failed = 0;
 
-foreach ($pending as $employee) {
+foreach ($recipients as $employee) {
     $mailOk = send_mail($employee['email'], 'Euer Team-Debriefing & Spruch des Tages', $body);
     $sentAt = $mailOk ? date('Y-m-d H:i:s') : null;
 
@@ -116,4 +110,4 @@ foreach ($pending as $employee) {
     }
 }
 
-echo "Team-Debriefing verschickt an: {$sent}, Fehler: {$failed}, Empfänger gesamt: " . count($pending) . "\n";
+echo "Team-Debriefing verschickt an: {$sent}, Fehler: {$failed}, Empfänger gesamt: " . count($recipients) . "\n";

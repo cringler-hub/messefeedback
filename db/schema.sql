@@ -37,8 +37,9 @@ CREATE TABLE IF NOT EXISTS feedback_answers (
         REFERENCES feedback_submissions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Eine KI-Debriefing-Mail pro Mitarbeiter und Tag (idempotenz für den
--- 06:30-Cronjob, falls dieser mehrfach ausgelöst wird).
+-- Verlauf der KI-Debriefing-Mails. Kein Unique-Key mehr auf
+-- employee+Tag - der 06:30-Cronjob generiert und verschickt bei
+-- jedem Aufruf erneut, auch mehrfach am selben Tag (Testzwecke).
 CREATE TABLE IF NOT EXISTS debriefings (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     employee_id INT UNSIGNED NOT NULL,
@@ -47,7 +48,7 @@ CREATE TABLE IF NOT EXISTS debriefings (
     motivation_quote TEXT NOT NULL,
     generated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     sent_at DATETIME NULL,
-    UNIQUE KEY uniq_employee_debrief_day (employee_id, debriefing_date),
+    INDEX idx_employee_id (employee_id),
     CONSTRAINT fk_debriefing_employee FOREIGN KEY (employee_id)
         REFERENCES employees(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

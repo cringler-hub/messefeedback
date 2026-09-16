@@ -145,18 +145,22 @@ kein Redeploy nötig.
 
 Mitarbeiter können das Formular am selben Tag beliebig oft ausfüllen
 (kein Unique-Key auf employee+Tag in `feedback_submissions`). Das
-06:30-Debriefing fasst am nächsten Morgen automatisch **alle**
-Einreichungen des Vortags je Mitarbeiter zu einem Team-Debriefing
-zusammen.
+06:30-Debriefing fasst automatisch **alle** Einreichungen des Vortags
+zu einem Team-Debriefing zusammen und verschickt es an alle aktiven
+Mitarbeiter – auch wenn niemand geantwortet hat (dann mit einem
+Hinweistext + allgemeinem Motivationsspruch statt individueller
+Zusammenfassung).
 
-Die 17:45-Erinnerung wird bei jedem Aufruf erneut an alle Mitarbeiter
-ohne Feedback für den Tag verschickt – auch wenn an dem Tag schon
-einmal erinnert wurde (`reminder_log` ist nur noch Verlauf, keine
-Sperre mehr). Sobald jemand Feedback abgegeben hat, bekommt er/sie
-keine weitere Erinnerung mehr an dem Tag.
+Sowohl die 17:45-Erinnerung als auch das 06:30-Debriefing werden bei
+jedem Aufruf **erneut** verschickt, auch mehrfach am selben Tag (zu
+Testzwecken bewusst ohne "schon verschickt"-Sperre; `reminder_log`
+und `debriefings` dienen nur noch als Verlauf). Bei der Erinnerung
+gilt weiterhin: Sobald jemand Feedback abgegeben hat, bekommt er/sie
+für den Rest des Tages keine weitere Erinnerung mehr.
 
 Bei einer schon bestehenden Datenbank zusätzlich einmalig
-`db/migration_allow_repeated_reminders.sql` ausführen (siehe
+`db/migration_allow_repeated_reminders.sql` und
+`db/migration_allow_repeated_debriefings.sql` ausführen (siehe
 Einrichtung oben).
 
 ## E-Mail-Versand
