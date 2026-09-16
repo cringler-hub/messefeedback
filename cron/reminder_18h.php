@@ -1,11 +1,10 @@
 <?php
 declare(strict_types=1);
 
-// Täglich um 17:45 Uhr per Cron aufrufen. Verschickt an alle aktiven
-// Mitarbeiter, die heute noch kein Feedback abgegeben haben, eine
-// kurze Erinnerungsmail mit Link zum Formular. Wird bei mehrfachem
-// Aufruf am selben Tag jedes Mal erneut verschickt (reminder_log
-// dient nur noch als Verlauf, nicht mehr als Sperre).
+// Täglich um 17:45 Uhr per Cron aufrufen. Verschickt bei jedem Aufruf
+// ausnahmslos an ALLE aktiven Mitarbeiter eine Erinnerungsmail mit
+// Link zum Formular - unabhängig davon, ob schon Feedback vorliegt,
+// und auch mehrfach am selben Tag (reminder_log dient nur als Verlauf).
 
 require_once __DIR__ . '/../lib/config.php';
 require_once __DIR__ . '/../lib/db.php';
@@ -19,17 +18,7 @@ $pdo = get_db();
 
 $today = date('Y-m-d');
 
-$pending = $pdo->prepare(
-    "SELECT e.id, e.name, e.email
-     FROM employees e
-     WHERE e.active = 1
-       AND NOT EXISTS (
-           SELECT 1 FROM feedback_submissions fs
-           WHERE fs.employee_id = e.id AND fs.feedback_date = ?
-       )"
-);
-$pending->execute([$today]);
-$pending = $pending->fetchAll();
+$recipients = $pdo->query('SELECT id, name, email FROM employees WHERE active = 1')->fetchAll();
 
 $formUrl = rtrim($config['app']['base_url'], '/') . '/';
 $logStmt = $pdo->prepare(
@@ -37,9 +26,9 @@ $logStmt = $pdo->prepare(
 );
 
 $sent = 0;
-foreach ($pending as $employee) {
+foreach ($recipients as $employee) {
     $body = "Hallo {$employee['name']},\n\n"
-        . "kurze Erinnerung: Bitte fülle noch dein Tagesfeedback zur Innotrans aus, "
+        . "kurze Erinnerung: Bitte fülle dein Tagesfeedback zur Innotrans aus, "
         . "dauert nur 1 Minute:\n{$formUrl}\n\n"
         . "Danke und viele Grüße!";
 
@@ -53,4 +42,4 @@ foreach ($pending as $employee) {
     }
 }
 
-echo "Erinnerungen verschickt: {$sent} von " . count($pending) . "\n";
+echo "Erinnerungen verschickt: {$sent} von " . count($recipients) . "\n";

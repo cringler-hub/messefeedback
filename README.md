@@ -152,11 +152,10 @@ Hinweistext + allgemeinem Motivationsspruch statt individueller
 Zusammenfassung).
 
 Sowohl die 17:45-Erinnerung als auch das 06:30-Debriefing werden bei
-jedem Aufruf **erneut** verschickt, auch mehrfach am selben Tag (zu
-Testzwecken bewusst ohne "schon verschickt"-Sperre; `reminder_log`
-und `debriefings` dienen nur noch als Verlauf). Bei der Erinnerung
-gilt weiterhin: Sobald jemand Feedback abgegeben hat, bekommt er/sie
-für den Rest des Tages keine weitere Erinnerung mehr.
+jedem Aufruf **erneut und ausnahmslos an alle aktiven Mitarbeiter**
+verschickt, auch mehrfach am selben Tag und unabhängig davon, ob
+schon Feedback vorliegt (zu Testzwecken bewusst ohne jede Sperre;
+`reminder_log` und `debriefings` dienen nur noch als Verlauf).
 
 Bei einer schon bestehenden Datenbank zusätzlich einmalig
 `db/migration_allow_repeated_reminders.sql` und
