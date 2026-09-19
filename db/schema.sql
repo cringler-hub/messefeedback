@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS debriefings (
     employee_id INT UNSIGNED NOT NULL,
     debriefing_date DATE NOT NULL,
     summary_text TEXT NOT NULL,
+    action_text TEXT NULL,
     motivation_quote TEXT NOT NULL,
     generated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     sent_at DATETIME NULL,

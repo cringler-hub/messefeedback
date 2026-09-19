@@ -9,10 +9,11 @@ class ClaudeApiException extends RuntimeException
 
 /**
  * Erzeugt aus dem gesammelten Tagesfeedback aller Mitarbeiter ein
- * gemeinsames Team-Debriefing plus einen Motivationsspruch für den
- * nächsten Tag. Alle Mitarbeiter erhalten denselben Text.
+ * gemeinsames Team-Debriefing plus Motivationsspruch und konkreter
+ * Handlungsempfehlung für den heutigen Messetag. Alle Mitarbeiter
+ * erhalten denselben Text.
  *
- * @return array{summary: string, quote: string}
+ * @return array{summary: string, quote: string, action: string}
  */
 function generate_team_debriefing(string $combinedFeedbackText, int $employeeCount): array
 {
@@ -21,31 +22,44 @@ function generate_team_debriefing(string $combinedFeedbackText, int $employeeCou
     $system = <<<SYS
 Du bist Assistent für ein tägliches Team-Debriefing auf einer Messe
 (Innotrans). Du bekommst das strukturierte Tagesfeedback mehrerer
-Mitarbeiter/innen desselben Messetags, jeweils mit Namen. Erstelle
-daraus EIN gemeinsames Debriefing für das ganze Team (nicht pro
-Person einzeln):
+Mitarbeiter/innen vom GESTRIGEN Messetag, jeweils mit Namen. Diese
+Zusammenfassung wird dem Team HEUTE FRÜH per Mail zugestellt, bevor
+der heutige Messetag beginnt. Erstelle daraus EIN gemeinsames
+Debriefing für das ganze Team (nicht pro Person einzeln):
 
-1. "summary": Eine kurze Team-Zusammenfassung des Tages (4-6 Sätze,
-   per Ihr/Euch, warmer aber professioneller Ton). Verdichte die
+1. "summary": Eine kurze, persönliche Team-Zusammenfassung des
+   gestrigen Tages (4-6 Sätze, per Ihr/Euch, warm, motivierend und
+   zielgerichtet statt nur nüchtern-professionell). Verdichte die
    wichtigsten Punkte über alle Rückmeldungen hinweg (Gesamtstimmung,
    Highlights, gemeldete Probleme, Konkurrenzbeobachtungen). Bei
-   Bedarf einzelne Personen namentlich erwähnen, wenn es zum
-   Verständnis beiträgt. Keine Floskeln, keine wörtliche Wiederholung
-   aller Antworten, sondern eine echte Verdichtung fürs ganze Team.
-2. "quote": Ein motivierender Spruch für den kommenden Tag (1-2
-   Sätze) fürs ganze Team, der zur berichteten Gesamtstimmung passt.
-   Keine abgedroschenen Standardsprüche, möglichst variieren.
+   Bedarf einzelne Personen namentlich und wertschätzend erwähnen.
+   Keine Floskeln, keine wörtliche Wiederholung aller Antworten,
+   sondern eine echte, warme Verdichtung fürs ganze Team.
+2. "action": Eine konkrete, umsetzbare Handlungsempfehlung für HEUTE
+   (1-2 Sätze), abgeleitet aus dem gestrigen Feedback - z. B. ein
+   gemeldetes Problem gezielt angehen, einen vielversprechenden
+   Kontakt heute nachfassen, oder auf eine Beobachtung zur Konkurrenz
+   reagieren. Konkret und direkt umsetzbar, keine allgemeinen Tipps.
+   Falls das Feedback keinen klaren Ansatzpunkt liefert, eine sinnvolle
+   generische Fokus-Empfehlung für den Messetag geben.
+3. "quote": Ein motivierender, persönlicher Spruch für HEUTE (1-2
+   Sätze) fürs ganze Team, der zur berichteten Gesamtstimmung passt
+   (z. B. aufmunternd nach einem schwierigen Tag, bestärkend nach
+   einem guten Tag). WICHTIG: Beziehe dich auf "heute", NIEMALS auf
+   "morgen" - die Leser lesen dies am Morgen des Tages, für den der
+   Spruch gilt. Keine abgedroschenen Standardsprüche, möglichst
+   variieren.
 
 Antworte AUSSCHLIESSLICH mit einem JSON-Objekt exakt in dieser Form,
 ohne weiteren Text davor oder danach:
-{"summary": "...", "quote": "..."}
+{"summary": "...", "action": "...", "quote": "..."}
 SYS;
 
-    $userMessage = "Feedback von {$employeeCount} Mitarbeiter(n) für denselben Messetag:\n\n{$combinedFeedbackText}";
+    $userMessage = "Feedback von {$employeeCount} Mitarbeiter(n) für den gestrigen Messetag:\n\n{$combinedFeedbackText}";
 
     $payload = json_encode([
         'model' => $cfg['model'],
-        'max_tokens' => 500,
+        'max_tokens' => 600,
         'system' => $system,
         'messages' => [
             ['role' => 'user', 'content' => $userMessage],
@@ -81,7 +95,7 @@ SYS;
     $text = $decoded['content'][0]['text'] ?? '';
 
     $result = json_decode(trim($text), true);
-    if (!is_array($result) || empty($result['summary']) || empty($result['quote'])) {
+    if (!is_array($result) || empty($result['summary']) || empty($result['quote']) || empty($result['action'])) {
         // Fallback: JSON-Objekt aus der Antwort herausschneiden, falls
         // Claude zusätzlichen Text drumherum geschrieben hat.
         if (preg_match('/\{.*\}/s', $text, $matches)) {
@@ -89,12 +103,13 @@ SYS;
         }
     }
 
-    if (!is_array($result) || empty($result['summary']) || empty($result['quote'])) {
+    if (!is_array($result) || empty($result['summary']) || empty($result['quote']) || empty($result['action'])) {
         throw new ClaudeApiException('Konnte Antwort der Claude API nicht als JSON parsen: ' . $text);
     }
 
     return [
         'summary' => (string) $result['summary'],
+        'action' => (string) $result['action'],
         'quote' => (string) $result['quote'],
     ];
 }

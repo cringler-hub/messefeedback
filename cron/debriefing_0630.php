@@ -2,11 +2,11 @@
 declare(strict_types=1);
 
 // Täglich um 06:30 Uhr per Cron aufrufen. Fasst das Feedback ALLER
-// Mitarbeiter vom Vortag zu EINEM gemeinsamen Team-Debriefing +
-// Motivationsspruch zusammen und verschickt diesen identischen Text
-// an alle aktiven Mitarbeiter. Wird bei mehrfachem Aufruf am selben
-// Tag jedes Mal erneut generiert und verschickt (zu Testzwecken keine
-// "schon verschickt"-Sperre mehr).
+// Mitarbeiter vom Vortag zu EINER gemeinsamen Team-Zusammenfassung +
+// Handlungsempfehlung + Motivationsspruch für HEUTE zusammen und
+// verschickt diesen identischen Text an alle aktiven Mitarbeiter.
+// Wird bei mehrfachem Aufruf am selben Tag jedes Mal erneut generiert
+// und verschickt (zu Testzwecken keine "schon verschickt"-Sperre mehr).
 
 require_once __DIR__ . '/../lib/config.php';
 require_once __DIR__ . '/../lib/db.php';
@@ -46,7 +46,8 @@ if (count($submissionRows) === 0) {
     // Rückmeldungen eine Mail bekommen, statt gar nichts zu hören.
     $result = [
         'summary' => 'Für den gestrigen Messetag lag leider kein Feedback aus dem Team vor.',
-        'quote' => 'Ein neuer Tag, eine neue Chance – auf geht’s!',
+        'action' => 'Nehmt euch heute kurz Zeit, das Tagesfeedback auszufüllen, damit die Zusammenfassung morgen wieder alle Eindrücke des Teams abbildet.',
+        'quote' => 'Heute ist ein guter Tag für einen guten Tag – auf geht’s!',
     ];
 } else {
     $answerStmt = $pdo->prepare(
@@ -74,28 +75,32 @@ if (count($submissionRows) === 0) {
     }
 }
 
+$subject = 'Guten Morgen – anbei euer Messefeedback für heute';
+
 $body = "Guten Morgen,\n\n"
-    . "euer Team-Debriefing zum gestrigen Messetag:\n\n"
+    . "anbei euer Messefeedback für heute – hier die Zusammenfassung von gestern:\n\n"
     . $result['summary'] . "\n\n"
-    . "Für heute:\n\"" . $result['quote'] . "\"\n\n"
+    . "Für heute empfehlen wir:\n" . $result['action'] . "\n\n"
+    . "\"" . $result['quote'] . "\"\n\n"
     . "Einen guten Start in den Tag!";
 
 $insertDebriefing = $pdo->prepare(
-    'INSERT INTO debriefings (employee_id, debriefing_date, summary_text, motivation_quote, sent_at)
-     VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO debriefings (employee_id, debriefing_date, summary_text, action_text, motivation_quote, sent_at)
+     VALUES (?, ?, ?, ?, ?, ?)'
 );
 
 $sent = 0;
 $failed = 0;
 
 foreach ($recipients as $employee) {
-    $mailOk = send_mail($employee['email'], 'Euer Team-Debriefing & Spruch des Tages', $body);
+    $mailOk = send_mail($employee['email'], $subject, $body);
     $sentAt = $mailOk ? date('Y-m-d H:i:s') : null;
 
     $insertDebriefing->execute([
         $employee['id'],
         $feedbackDate,
         $result['summary'],
+        $result['action'],
         $result['quote'],
         $sentAt,
     ]);

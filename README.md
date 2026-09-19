@@ -1,11 +1,11 @@
 # Messefeedback Innotrans – Tages-Debriefing
 
 Tägliches Feedback-Formular für Mitarbeiter auf der Innotrans, daraus
-per Claude API EIN gemeinsames Team-Debriefing + Motivationsspruch für
-den ganzen Tag, das morgens um 6:30 Uhr identisch an alle aktiven
-Mitarbeiter per Mail rausgeht (kein individuelles Debriefing pro
-Person). Um 17:45 Uhr gibt es eine Erinnerungsmail an alle, die noch
-kein Feedback für den Tag abgegeben haben.
+per Claude API EINE gemeinsame Team-Zusammenfassung + konkrete
+Handlungsempfehlung + Motivationsspruch für den heutigen Tag, die
+morgens um 6:30 Uhr identisch an alle aktiven Mitarbeiter per Mail
+rausgeht (kein individuelles Debriefing pro Person). Um 17:45 Uhr gibt
+es eine Erinnerungsmail an alle aktiven Mitarbeiter.
 
 Reines PHP + MySQL, läuft auf IONOS Shared Hosting ohne Node/Build-Schritt.
 
@@ -158,9 +158,9 @@ schon Feedback vorliegt (zu Testzwecken bewusst ohne jede Sperre;
 `reminder_log` und `debriefings` dienen nur noch als Verlauf).
 
 Bei einer schon bestehenden Datenbank zusätzlich einmalig
-`db/migration_allow_repeated_reminders.sql` und
-`db/migration_allow_repeated_debriefings.sql` ausführen (siehe
-Einrichtung oben).
+`db/migration_allow_repeated_reminders.sql`,
+`db/migration_allow_repeated_debriefings.sql` und
+`db/migration_add_action_text.sql` ausführen (siehe Einrichtung oben).
 
 ## E-Mail-Versand
 
