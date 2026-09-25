@@ -8,17 +8,96 @@ class ClaudeApiException extends RuntimeException
 }
 
 /**
+ * Ruft die Claude API mit einem System- und User-Prompt auf und
+ * erwartet eine JSON-Antwort mit den angegebenen Pflichtfeldern.
+ *
+ * @param string[] $requiredKeys
+ * @return array<string, string>
+ */
+function call_claude_json(string $system, string $userMessage, array $requiredKeys, int $maxTokens = 600): array
+{
+    $cfg = load_config()['claude'];
+
+    $payload = json_encode([
+        'model' => $cfg['model'],
+        'max_tokens' => $maxTokens,
+        'system' => $system,
+        'messages' => [
+            ['role' => 'user', 'content' => $userMessage],
+        ],
+    ], JSON_THROW_ON_ERROR);
+
+    $ch = curl_init('https://api.anthropic.com/v1/messages');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => [
+            'content-type: application/json',
+            'x-api-key: ' . $cfg['api_key'],
+            'anthropic-version: 2023-06-01',
+        ],
+        CURLOPT_TIMEOUT => 45,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($response === false) {
+        throw new ClaudeApiException("cURL-Fehler: {$curlError}");
+    }
+    if ($httpCode !== 200) {
+        throw new ClaudeApiException("Claude API HTTP {$httpCode}: {$response}");
+    }
+
+    $decoded = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+    $text = $decoded['content'][0]['text'] ?? '';
+
+    $result = json_decode(trim($text), true);
+    if (!is_array($result) || !claude_result_has_keys($result, $requiredKeys)) {
+        // Fallback: JSON-Objekt aus der Antwort herausschneiden, falls
+        // Claude zusätzlichen Text drumherum geschrieben hat.
+        if (preg_match('/\{.*\}/s', $text, $matches)) {
+            $result = json_decode($matches[0], true);
+        }
+    }
+
+    if (!is_array($result) || !claude_result_has_keys($result, $requiredKeys)) {
+        throw new ClaudeApiException('Konnte Antwort der Claude API nicht als JSON parsen: ' . $text);
+    }
+
+    $output = [];
+    foreach ($requiredKeys as $key) {
+        $output[$key] = (string) $result[$key];
+    }
+
+    return $output;
+}
+
+/** @param string[] $requiredKeys */
+function claude_result_has_keys(array $result, array $requiredKeys): bool
+{
+    foreach ($requiredKeys as $key) {
+        if (empty($result[$key])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Erzeugt aus dem gesammelten Tagesfeedback aller Mitarbeiter ein
  * gemeinsames Team-Debriefing plus Motivationsspruch und konkreter
  * Handlungsempfehlung für den heutigen Messetag. Alle Mitarbeiter
  * erhalten denselben Text.
  *
- * @return array{summary: string, quote: string, action: string}
+ * @return array{summary: string, action: string, quote: string}
  */
 function generate_team_debriefing(string $combinedFeedbackText, int $employeeCount): array
 {
-    $cfg = load_config()['claude'];
-
     $system = <<<SYS
 Du bist Assistent für ein tägliches Team-Debriefing auf einer Messe
 (Innotrans). Du bekommst das strukturierte Tagesfeedback mehrerer
@@ -57,59 +136,52 @@ SYS;
 
     $userMessage = "Feedback von {$employeeCount} Mitarbeiter(n) für den gestrigen Messetag:\n\n{$combinedFeedbackText}";
 
-    $payload = json_encode([
-        'model' => $cfg['model'],
-        'max_tokens' => 600,
-        'system' => $system,
-        'messages' => [
-            ['role' => 'user', 'content' => $userMessage],
-        ],
-    ], JSON_THROW_ON_ERROR);
+    return call_claude_json($system, $userMessage, ['summary', 'action', 'quote'], 600);
+}
 
-    $ch = curl_init('https://api.anthropic.com/v1/messages');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_HTTPHEADER => [
-            'content-type: application/json',
-            'x-api-key: ' . $cfg['api_key'],
-            'anthropic-version: 2023-06-01',
-        ],
-        CURLOPT_TIMEOUT => 30,
-    ]);
+/**
+ * Erzeugt den einmaligen Abschluss-Rückblick nach dem letzten
+ * Messetag: Zusammenfassung des letzten Tages, Gesamtrückblick über
+ * die komplette Messe und ein persönlicher Dank ans Team.
+ *
+ * @return array{daily_summary: string, event_summary: string, thanks: string}
+ */
+function generate_event_wrap_up(string $lastDayFeedbackText, string $allEventFeedbackText, int $employeeCount, int $eventDayCount): array
+{
+    $system = <<<SYS
+Du bist Assistent für den ABSCHLUSS eines mehrtägigen Messeauftritts
+(Innotrans). Heute ist der Morgen NACH dem letzten Messetag, die Messe
+ist vorbei. Du bekommst zwei Datensätze: (1) das Feedback ausschließlich
+vom GESTRIGEN, letzten Messetag, und (2) das gesammelte Feedback über
+die GESAMTE Messe (alle Tage, teils überschneidend mit (1)). Erstelle
+daraus:
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
+1. "daily_summary": Eine kurze, warme Zusammenfassung des letzten
+   Messetags (3-5 Sätze) - Highlights, Stimmung, Besonderheiten. Falls
+   für den letzten Tag kein Feedback vorliegt, das kurz und
+   wertschätzend erwähnen, ohne negativ zu klingen.
+2. "event_summary": Eine warme, würdigende Gesamtrückschau auf die
+   komplette Messe (5-8 Sätze) - roter Faden über die Tage hinweg,
+   größte Erfolge und Highlights, wie das Team mit Herausforderungen
+   umgegangen ist, bemerkenswerte Kontakte oder Beobachtungen. Soll
+   sich wie ein würdiger, persönlicher Rückblick lesen, nicht wie eine
+   trockene Auflistung. Keine wörtliche Wiederholung aller Antworten.
+3. "thanks": Ein herzlicher, persönlicher Dank an das gesamte Team
+   (3-5 Sätze, per Ihr/Euch) für den Einsatz, die Leistung und den
+   Zusammenhalt während der gesamten Messe. Warm und aufrichtig,
+   konkret statt floskelhaft - gerne mit Bezug auf das, was aus dem
+   Feedback an Teamgeist erkennbar wird.
 
-    if ($response === false) {
-        throw new ClaudeApiException("cURL-Fehler: {$curlError}");
-    }
-    if ($httpCode !== 200) {
-        throw new ClaudeApiException("Claude API HTTP {$httpCode}: {$response}");
-    }
+Antworte AUSSCHLIESSLICH mit einem JSON-Objekt exakt in dieser Form,
+ohne weiteren Text davor oder danach:
+{"daily_summary": "...", "event_summary": "...", "thanks": "..."}
+SYS;
 
-    $decoded = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
-    $text = $decoded['content'][0]['text'] ?? '';
+    $userMessage = "Team: {$employeeCount} Mitarbeiter(innen), Messe über {$eventDayCount} Tag(e).\n\n"
+        . "Feedback vom letzten Messetag:\n"
+        . ($lastDayFeedbackText !== '' ? $lastDayFeedbackText : '(kein Feedback für den letzten Tag vorhanden)')
+        . "\n\nFeedback über die gesamte Messe (alle Tage):\n"
+        . ($allEventFeedbackText !== '' ? $allEventFeedbackText : '(kein Feedback über die gesamte Messe vorhanden)');
 
-    $result = json_decode(trim($text), true);
-    if (!is_array($result) || empty($result['summary']) || empty($result['quote']) || empty($result['action'])) {
-        // Fallback: JSON-Objekt aus der Antwort herausschneiden, falls
-        // Claude zusätzlichen Text drumherum geschrieben hat.
-        if (preg_match('/\{.*\}/s', $text, $matches)) {
-            $result = json_decode($matches[0], true);
-        }
-    }
-
-    if (!is_array($result) || empty($result['summary']) || empty($result['quote']) || empty($result['action'])) {
-        throw new ClaudeApiException('Konnte Antwort der Claude API nicht als JSON parsen: ' . $text);
-    }
-
-    return [
-        'summary' => (string) $result['summary'],
-        'action' => (string) $result['action'],
-        'quote' => (string) $result['quote'],
-    ];
+    return call_claude_json($system, $userMessage, ['daily_summary', 'event_summary', 'thanks'], 900);
 }

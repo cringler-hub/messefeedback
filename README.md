@@ -89,6 +89,25 @@ Falls der SFTP-Account bei IONOS nur reines SFTP (kein SSH-Shell)
 erlaubt, ist das über `sftp_only: true` in der Workflow-Datei bereits
 berücksichtigt.
 
+## Abschluss-Debriefing (letzter Messetag)
+
+`cron/debriefing_final.php` ist ein **einmaliges** Skript für den
+Morgen nach dem letzten Messetag – NICHT für den täglichen
+Automatikbetrieb gedacht. Es verschickt statt des normalen
+06:30-Debriefings eine Mail mit drei Teilen: Zusammenfassung des
+letzten Tages, eine Gesamtrückschau über die komplette Messe (alle
+Tage) und ein persönlicher Dank ans Team.
+
+URL (gleicher Token wie die anderen Cron-Skripte):
+```
+https://www.ringler-online.com/messefeedback/cron/debriefing_final.php?token=DEIN_CRON_SECRET
+```
+
+Am letzten Tag der Messe: In n8n den 06:30-Workflow für diesen einen
+Morgen auf diese URL zeigen lassen (oder manuell im Browser aufrufen),
+danach kann die tägliche Automatik (Erinnerung + Debriefing) beendet
+bzw. deaktiviert werden.
+
 ## Cronjobs einrichten
 
 Die Zeitsteuerung läuft über **n8n** (Schedule Trigger + HTTP Request
