@@ -48,7 +48,7 @@ if (count($submissionRows) === 0) {
     // Rückmeldungen eine Mail bekommen, statt gar nichts zu hören.
     $result = [
         'summary' => 'Für den gestrigen Messetag lag leider kein Feedback aus dem Team vor.',
-        'action' => 'Nehmt euch heute kurz Zeit, das Tagesfeedback auszufüllen, damit die Zusammenfassung morgen wieder alle Eindrücke des Teams abbildet.',
+        'action' => 'Nutzt die Zeit heute, um die bisher gesammelten Leads/Kontakte systematisch zu erfassen und priorisiert nachzuverfolgen.',
         'quote' => 'Heute ist ein guter Tag für einen guten Tag – auf geht’s!',
     ];
 } else {

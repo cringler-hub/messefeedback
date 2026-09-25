@@ -114,13 +114,17 @@ Debriefing für das ganze Team (nicht pro Person einzeln):
    Bedarf einzelne Personen namentlich und wertschätzend erwähnen.
    Keine Floskeln, keine wörtliche Wiederholung aller Antworten,
    sondern eine echte, warme Verdichtung fürs ganze Team.
-2. "action": Eine konkrete, umsetzbare Handlungsempfehlung für HEUTE
-   (1-2 Sätze), abgeleitet aus dem gestrigen Feedback - z. B. ein
-   gemeldetes Problem gezielt angehen, einen vielversprechenden
-   Kontakt heute nachfassen, oder auf eine Beobachtung zur Konkurrenz
-   reagieren. Konkret und direkt umsetzbar, keine allgemeinen Tipps.
-   Falls das Feedback keinen klaren Ansatzpunkt liefert, eine sinnvolle
-   generische Fokus-Empfehlung für den Messetag geben.
+2. "action": Eine konkrete, umsetzbare Handlungsempfehlung zur
+   NACHBEARBEITUNG DER LEADS/KONTAKTE (1-2 Sätze), abgeleitet aus dem
+   gestrigen Feedback. Benenne wenn möglich konkret genannte
+   vielversprechende Kontakte/Highlights aus dem Feedback und wie sie
+   priorisiert nachverfolgt werden sollten (z. B. zeitnah anrufen,
+   Unterlagen zusenden, internen Ansprechpartner informieren). Falls
+   im Feedback keine konkreten Kontakte genannt wurden, eine sinnvolle
+   generische Empfehlung zur strukturierten Lead-Nachbearbeitung geben
+   (z. B. gesammelte Visitenkarten/Kontakte zeitnah systematisch
+   erfassen und Prioritäten setzen). Konkret und direkt umsetzbar,
+   keine allgemeinen Tipps zum Messetag selbst.
 3. "quote": Ein motivierender, persönlicher Spruch für HEUTE (1-2
    Sätze) fürs ganze Team, der zur berichteten Gesamtstimmung passt
    (z. B. aufmunternd nach einem schwierigen Tag, bestärkend nach
