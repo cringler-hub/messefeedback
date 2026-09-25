@@ -140,33 +140,27 @@ SYS;
 }
 
 /**
- * Erzeugt den einmaligen Abschluss-Rückblick nach dem letzten
- * Messetag: Zusammenfassung des letzten Tages, Gesamtrückblick über
- * die komplette Messe und ein persönlicher Dank ans Team.
+ * Erzeugt zusätzlich zur Tageszusammenfassung eine Gesamtrückschau
+ * über die komplette Messe (alle Tage) und einen persönlichen Dank
+ * ans Team - für den Morgen nach dem letzten Messetag.
  *
- * @return array{daily_summary: string, event_summary: string, thanks: string}
+ * @return array{event_summary: string, thanks: string}
  */
-function generate_event_wrap_up(string $lastDayFeedbackText, string $allEventFeedbackText, int $employeeCount, int $eventDayCount): array
+function generate_event_closing(string $allEventFeedbackText, int $employeeCount, int $eventDayCount): array
 {
     $system = <<<SYS
 Du bist Assistent für den ABSCHLUSS eines mehrtägigen Messeauftritts
 (Innotrans). Heute ist der Morgen NACH dem letzten Messetag, die Messe
-ist vorbei. Du bekommst zwei Datensätze: (1) das Feedback ausschließlich
-vom GESTRIGEN, letzten Messetag, und (2) das gesammelte Feedback über
-die GESAMTE Messe (alle Tage, teils überschneidend mit (1)). Erstelle
-daraus:
+ist vorbei. Du bekommst das gesammelte Feedback über die GESAMTE Messe
+(alle Tage). Erstelle daraus:
 
-1. "daily_summary": Eine kurze, warme Zusammenfassung des letzten
-   Messetags (3-5 Sätze) - Highlights, Stimmung, Besonderheiten. Falls
-   für den letzten Tag kein Feedback vorliegt, das kurz und
-   wertschätzend erwähnen, ohne negativ zu klingen.
-2. "event_summary": Eine warme, würdigende Gesamtrückschau auf die
+1. "event_summary": Eine warme, würdigende Gesamtrückschau auf die
    komplette Messe (5-8 Sätze) - roter Faden über die Tage hinweg,
    größte Erfolge und Highlights, wie das Team mit Herausforderungen
    umgegangen ist, bemerkenswerte Kontakte oder Beobachtungen. Soll
    sich wie ein würdiger, persönlicher Rückblick lesen, nicht wie eine
    trockene Auflistung. Keine wörtliche Wiederholung aller Antworten.
-3. "thanks": Ein herzlicher, persönlicher Dank an das gesamte Team
+2. "thanks": Ein herzlicher, persönlicher Dank an das gesamte Team
    (3-5 Sätze, per Ihr/Euch) für den Einsatz, die Leistung und den
    Zusammenhalt während der gesamten Messe. Warm und aufrichtig,
    konkret statt floskelhaft - gerne mit Bezug auf das, was aus dem
@@ -174,14 +168,12 @@ daraus:
 
 Antworte AUSSCHLIESSLICH mit einem JSON-Objekt exakt in dieser Form,
 ohne weiteren Text davor oder danach:
-{"daily_summary": "...", "event_summary": "...", "thanks": "..."}
+{"event_summary": "...", "thanks": "..."}
 SYS;
 
     $userMessage = "Team: {$employeeCount} Mitarbeiter(innen), Messe über {$eventDayCount} Tag(e).\n\n"
-        . "Feedback vom letzten Messetag:\n"
-        . ($lastDayFeedbackText !== '' ? $lastDayFeedbackText : '(kein Feedback für den letzten Tag vorhanden)')
-        . "\n\nFeedback über die gesamte Messe (alle Tage):\n"
+        . "Feedback über die gesamte Messe (alle Tage):\n"
         . ($allEventFeedbackText !== '' ? $allEventFeedbackText : '(kein Feedback über die gesamte Messe vorhanden)');
 
-    return call_claude_json($system, $userMessage, ['daily_summary', 'event_summary', 'thanks'], 900);
+    return call_claude_json($system, $userMessage, ['event_summary', 'thanks'], 800);
 }

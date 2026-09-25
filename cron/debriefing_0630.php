@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 // Täglich um 06:30 Uhr per Cron aufrufen. Fasst das Feedback ALLER
 // Mitarbeiter vom Vortag zu EINER gemeinsamen Team-Zusammenfassung +
-// Handlungsempfehlung + Motivationsspruch für HEUTE zusammen und
-// verschickt diesen identischen Text an alle aktiven Mitarbeiter.
-// Wird bei mehrfachem Aufruf am selben Tag jedes Mal erneut generiert
-// und verschickt (zu Testzwecken keine "schon verschickt"-Sperre mehr).
+// Handlungsempfehlung + Motivationsspruch für HEUTE zusammen,
+// zusätzlich einen Gesamtrückblick über die komplette Messe (alle
+// bisherigen Tage) + persönlichen Dank ans Team - und verschickt
+// diesen identischen Text an alle aktiven Mitarbeiter. Wird bei
+// mehrfachem Aufruf am selben Tag jedes Mal erneut generiert und
+// verschickt (zu Testzwecken keine "schon verschickt"-Sperre mehr).
 
 require_once __DIR__ . '/../lib/config.php';
 require_once __DIR__ . '/../lib/db.php';
@@ -75,6 +77,42 @@ if (count($submissionRows) === 0) {
     }
 }
 
+// Zusätzlich zur Tageszusammenfassung: Gesamtrückblick über die
+// komplette Messe (alle bisherigen Tage) + persönlicher Dank ans
+// Team, z. B. für den Morgen nach dem letzten Messetag.
+$allEventRows = $pdo->query(
+    'SELECT fs.id AS submission_id, fs.feedback_date, e.name
+     FROM feedback_submissions fs
+     JOIN employees e ON e.id = fs.employee_id
+     WHERE e.active = 1
+     ORDER BY fs.feedback_date, e.name'
+)->fetchAll();
+
+$eventBlocks = [];
+$answerStmtEvent = $pdo->prepare(
+    'SELECT question_key, answer_value FROM feedback_answers WHERE submission_id = ?'
+);
+foreach ($allEventRows as $row) {
+    $answerStmtEvent->execute([$row['submission_id']]);
+    $answersByKey = [];
+    foreach ($answerStmtEvent->fetchAll() as $a) {
+        $answersByKey[$a['question_key']] = $a['answer_value'];
+    }
+    $eventBlocks[] = "### {$row['feedback_date']} – {$row['name']}\n" . format_answers_for_prompt($answersByKey);
+}
+$allEventFeedback = implode("\n\n", $eventBlocks);
+$eventDayCount = max(count(array_unique(array_column($allEventRows, 'feedback_date'))), 1);
+
+try {
+    $closing = generate_event_closing($allEventFeedback, count($recipients), $eventDayCount);
+} catch (Throwable $e) {
+    error_log("debriefing_0630.php: Claude-Fehler (Gesamtrückblick): " . $e->getMessage());
+    $closing = [
+        'event_summary' => 'Die Gesamtrückschau auf die Messe konnte diesmal leider nicht automatisch erstellt werden.',
+        'thanks' => 'Vielen Dank an alle für den tollen Einsatz und Zusammenhalt während der gesamten Messe!',
+    ];
+}
+
 $subject = 'Guten Morgen – anbei euer Messefeedback für heute';
 
 $body = "Guten Morgen,\n\n"
@@ -82,6 +120,8 @@ $body = "Guten Morgen,\n\n"
     . $result['summary'] . "\n\n"
     . "Für heute empfehlen wir:\n" . $result['action'] . "\n\n"
     . "\"" . $result['quote'] . "\"\n\n"
+    . "Gesamtrückblick auf die Messe:\n" . $closing['event_summary'] . "\n\n"
+    . $closing['thanks'] . "\n\n"
     . "Einen guten Start in den Tag!";
 
 $insertDebriefing = $pdo->prepare(
